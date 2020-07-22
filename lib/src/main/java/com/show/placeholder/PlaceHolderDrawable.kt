@@ -46,6 +46,7 @@ class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
             }
 
             override fun onViewDetachedFromWindow(v: View) {
+                PlaceHolderManager.getManager().getViews().get()?.remove(v)
                 v.removeOnAttachStateChangeListener(this)
                 cancelAnimation()
             }

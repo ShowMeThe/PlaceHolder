@@ -36,18 +36,23 @@ class PlaceHolder(
                 drawable.setupAnimator()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     view.foreground = drawable
+                }else{
+                    PlaceHolderManager.getManager().patchUnder23().patchView(view, drawable)
                 }
-
             }
 
         })
     }
+
+    fun getPatchDrawable() = drawable
 
     fun clear() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             view.foreground = null
             view.minimumWidth = 0
             view.minimumHeight = 0
+        }else{
+            PlaceHolderManager.getManager().patchUnder23().clear(view)
         }
     }
 

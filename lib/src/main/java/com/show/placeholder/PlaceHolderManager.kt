@@ -5,9 +5,18 @@ import android.view.View
 import java.lang.ref.SoftReference
 
 
-class PlaceHolderManager {
+class PlaceHolderManager private constructor(){
+
+    companion object{
+        private val ins by lazy { PlaceHolderManager() }
+        fun getManager() = ins
+    }
 
     private val views = SoftReference<ArrayMap<View, PlaceConfig>>(ArrayMap())
+
+    private lateinit var placeUnder: PlaceUnder23
+
+    fun getViews() = views
 
     fun patchViews(vararg varView: View){
         for(view in varView){
@@ -38,11 +47,26 @@ class PlaceHolderManager {
         }
     }
 
+    fun patchUnder23(placeUnder23: PlaceUnder23){
+        this.placeUnder = placeUnder23
+    }
+
+    fun patchUnder23() = placeUnder
+
     fun clear(){
-        if( views.get()!!.isNotEmpty()){
-            for(it in  views.get()!!){
-                it.value.getHolder()?.clear()
+        views.get()?.apply {
+            if(isNotEmpty()){
+                for(it in this){
+                    it.value.getHolder()?.clear()
+                }
             }
+        }
+    }
+
+
+    fun clear(v:View){
+        views.get()?.apply {
+            this[v]?.getHolder()?.clear()
         }
     }
 

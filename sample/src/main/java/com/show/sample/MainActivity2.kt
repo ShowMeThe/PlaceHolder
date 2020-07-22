@@ -18,9 +18,10 @@ class MainActivity2 : AppCompatActivity() {
 
         val ivDrawable = ContextCompat.getDrawable(this,R.drawable.logo)
 
-        val placeHolderManager = PlaceHolderManager()
+        val placeHolderManager = PlaceHolderManager.getManager()
 
-        placeHolderManager.patchViews(ivLogo,PlaceConfig(tv).setPlaceHolderSize(300,120))
+
+        placeHolderManager.patchViews(ivLogo,PlaceConfig(tv).setPlaceHolderSize(320,100))
 
         ivLogo.postDelayed({
             tv.text = text
@@ -28,5 +29,9 @@ class MainActivity2 : AppCompatActivity() {
             placeHolderManager.clear()
         },4000)
 
+    }
+
+    override fun onBackPressed() {
+        finish()
     }
 }
