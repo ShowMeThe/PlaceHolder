@@ -1,6 +1,7 @@
 package com.show.placeholder
 
 import android.graphics.Color
+import android.text.style.BackgroundColorSpan
 import android.view.View
 
 
@@ -9,15 +10,21 @@ class PlaceConfig(var view:View){
     private var lightColor = Color.parseColor("#f7f7f7")
     private var rectRadius = 8f
     private var drawable: PlaceHolderDrawable? = null
-    private var holder : PlaceHolder? = null
     private var width = 0
     private var height = 0
-
+    private var attachStart = true
+    private var attachBackground = false //为True时候放到background
 
     fun setDefaultColor(defaultColor:Int) : PlaceConfig {
         this.defaultColor = defaultColor
         return this
     }
+
+    fun setAttachBackground(isBackground:Boolean):PlaceConfig{
+        attachBackground = isBackground
+        return this
+    }
+    fun getAttachBackground() = attachBackground
 
     fun getDefaultColor() = defaultColor
 
@@ -41,13 +48,19 @@ class PlaceConfig(var view:View){
     }
     fun getPlaceHolderSize() = width to height
 
-    fun getHolder() : PlaceHolder?{
+
+    fun setAttachFirst(first:Boolean):PlaceConfig{
+        this.attachStart = first
+        return this
+    }
+
+    fun getAttachFirst() = attachStart
+
+    fun getHolder() : PlaceHolderDrawable?{
         if(drawable == null){
             drawable = PlaceHolderDrawable(this)
-            holder = PlaceHolder(view,drawable!!,width,height)
-            holder?.onPatchView()
         }
-        return holder
+        return drawable
     }
 
 }

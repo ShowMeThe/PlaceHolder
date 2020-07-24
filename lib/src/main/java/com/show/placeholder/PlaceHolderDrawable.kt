@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.graphics.*
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
@@ -15,7 +16,7 @@ import java.lang.ref.WeakReference
  *  2019/11/10
  *  19:43
  */
-class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
+class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
 
     private val defaultColor = config.getDefaultColor()
     private val heightColor = config.getLightColor()
@@ -37,23 +38,25 @@ class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
     private var mBackgroundCanvas: Canvas? = null
     private var mBackgroundLayer: Bitmap? = null
     private var target: WeakReference<View> = WeakReference(config.view)
+    private var launchOnce = false
 
     init {
 
         target.get()?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
-
             }
 
             override fun onViewDetachedFromWindow(v: View) {
                 PlaceHolderManager.getManager().getViews().get()?.remove(v)
                 v.removeOnAttachStateChangeListener(this)
                 cancelAnimation()
+                clear()
             }
         })
 
         target.get()?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener{
             override fun onGlobalLayout() {
+                target.get()?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
                 if (mGradientCanvas == null) {
                     if(config.getPlaceHolderSize().first == 0 && config.getPlaceHolderSize().second == 0){
                         mCanvasWidth = target.get()?.measuredWidth?:0
@@ -62,13 +65,32 @@ class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
                         mCanvasWidth = config.getPlaceHolderSize().first
                         mCanvasHeight = config.getPlaceHolderSize().second
                     }
+                    setBounds(0, 0, mCanvasWidth, mCanvasHeight)
+                    intrinsicHeight = mCanvasHeight
+                    intrinsicWidth = mCanvasWidth
                     if(mCanvasWidth >0 && mCanvasHeight >0){
                         mGradientLayer = Bitmap.createBitmap(mCanvasWidth, mCanvasHeight, Bitmap.Config.ALPHA_8)
                         mGradientCanvas = Canvas(mGradientLayer!!)
 
                         mBackgroundLayer = Bitmap.createBitmap(mCanvasWidth, mCanvasHeight, Bitmap.Config.ARGB_8888)
                         mBackgroundCanvas = Canvas(mBackgroundLayer!!)
-                        target.get()?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if(config.getAttachBackground()){
+                                target.get()?.background = this@PlaceHolderDrawable
+                            }else{
+                                target.get()?.foreground = this@PlaceHolderDrawable
+                            }
+                        }else{
+                            target.get()?.apply {
+                                PlaceHolderManager.getManager().patchUnder23().patchView(this, this@PlaceHolderDrawable)
+                            }
+                        }
+
+                        if(config.getAttachFirst() && !launchOnce){
+                            launchOnce = true
+                            setupAnimator()
+                        }
                     }
                 }
             }
@@ -83,16 +105,11 @@ class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
     }
 
     override fun draw(canvas: Canvas) {
-        if (bounds.width() <= 0
-                || bounds.height() <= 0) {
-            super.draw(canvas)
-            return
-        }
+        super.draw(canvas)
         if (target.get() == null) {
             cancelAnimation()
             return
         }
-
 
         if (mBackgroundLayer!!.isRecycled
             || mGradientLayer!!.isRecycled ) {
@@ -157,6 +174,24 @@ class PlaceHolderDrawable(config: PlaceConfig) : ShapeDrawable() {
             }
 
             mGradientLayer = null
+        }
+    }
+
+
+
+    fun clear() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(config.getAttachBackground()){
+                target.get()?.background = null
+            }else{
+                target.get()?.foreground = null
+            }
+            target.get()?.minimumWidth = 0
+            target.get()?.minimumHeight = 0
+        }else{
+            target.get()?.apply {
+                PlaceHolderManager.getManager().patchUnder23().clear(this)
+            }
         }
     }
 
