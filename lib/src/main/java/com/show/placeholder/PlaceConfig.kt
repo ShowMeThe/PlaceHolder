@@ -12,16 +12,23 @@ class PlaceConfig(var view:View){
     private var drawable: PlaceHolderDrawable? = null
     private var width = 0
     private var height = 0
-    private var attachStart = true
+    private var attachStart = true //自动开始播放动画
     private var attachBackground = false //为True时候放到background
+    private var attachDrawable = false //不添加到background 也不添加到 foreground
+
+    fun setAttachDrawable(attachDrawable:Boolean):PlaceConfig{
+        this.attachDrawable = attachDrawable
+        return this
+    }
+    fun getAttachDrawable() = attachDrawable
 
     fun setDefaultColor(defaultColor:Int) : PlaceConfig {
         this.defaultColor = defaultColor
         return this
     }
 
-    fun setAttachBackground(isBackground:Boolean):PlaceConfig{
-        attachBackground = isBackground
+    fun setAttachBackground(attachBackground:Boolean):PlaceConfig{
+        this.attachBackground = attachBackground
         return this
     }
     fun getAttachBackground() = attachBackground

@@ -23,7 +23,7 @@ class MainActivity2 : AppCompatActivity() {
         val ivDrawable = ContextCompat.getDrawable(this,R.drawable.logo)
         tv.text = text
         ivLogo.setImageDrawable(ivDrawable)
-        val place = PlaceHolderDrawable(PlaceConfig(ivLogo2).setAttachBackground(true))
+        val place = PlaceHolderDrawable(PlaceConfig(ivLogo2).setAttachDrawable(true))
 
         Glide.with(this).load(url)
             .diskCacheStrategy(DiskCacheStrategy.NONE)

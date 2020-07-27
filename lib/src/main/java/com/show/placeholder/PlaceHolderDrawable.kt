@@ -39,6 +39,7 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
     private var mBackgroundLayer: Bitmap? = null
     private var target: WeakReference<View> = WeakReference(config.view)
     private var launchOnce = false
+    private val floatArray = floatArrayOf( 0f,0.4f,0.8f)
 
     init {
 
@@ -75,15 +76,17 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
                         mBackgroundLayer = Bitmap.createBitmap(mCanvasWidth, mCanvasHeight, Bitmap.Config.ARGB_8888)
                         mBackgroundCanvas = Canvas(mBackgroundLayer!!)
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            if(config.getAttachBackground()){
-                                target.get()?.background = this@PlaceHolderDrawable
+                        if(!config.getAttachDrawable()){
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                if(config.getAttachBackground()){
+                                    target.get()?.background = this@PlaceHolderDrawable
+                                }else{
+                                    target.get()?.foreground = this@PlaceHolderDrawable
+                                }
                             }else{
-                                target.get()?.foreground = this@PlaceHolderDrawable
-                            }
-                        }else{
-                            target.get()?.apply {
-                                PlaceHolderManager.getManager().patchUnder23().patchView(this, this@PlaceHolderDrawable)
+                                target.get()?.apply {
+                                    PlaceHolderManager.getManager().patchUnder23().patchView(this, this@PlaceHolderDrawable)
+                                }
                             }
                         }
 
@@ -97,7 +100,7 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
         })
 
         shape = getReboundRect(radius)
-
+        paint.color = defaultColor
     }
 
     private fun getReboundRect(radius: Float): RoundRectShape {
@@ -117,7 +120,7 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
             return
         }
 
-        paint.color = defaultColor
+
         shape.draw(mBackgroundCanvas, paint)
 
         canvas.drawBitmap(mBackgroundLayer!!, 0f, 0f, paint)
@@ -125,7 +128,6 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
         xStartCoordinate = animatedValue
         xEndCoordinate = xStartCoordinate + mCanvasWidth/2
 
-        val floatArray = floatArrayOf( 0f,0.4f,0.8f)
 
         paint.shader = LinearGradient(xStartCoordinate, 0f, xEndCoordinate, 0f, mColors, floatArray, Shader.TileMode.CLAMP)
         shape.draw(mGradientCanvas, paint)
@@ -180,17 +182,19 @@ class PlaceHolderDrawable(var config: PlaceConfig) : ShapeDrawable() {
 
 
     fun clear() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(config.getAttachBackground()){
-                target.get()?.background = null
+        if(!config.getAttachDrawable()){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if(config.getAttachBackground()){
+                    target.get()?.background = null
+                }else{
+                    target.get()?.foreground = null
+                }
+                target.get()?.minimumWidth = 0
+                target.get()?.minimumHeight = 0
             }else{
-                target.get()?.foreground = null
-            }
-            target.get()?.minimumWidth = 0
-            target.get()?.minimumHeight = 0
-        }else{
-            target.get()?.apply {
-                PlaceHolderManager.getManager().patchUnder23().clear(this)
+                target.get()?.apply {
+                    PlaceHolderManager.getManager().patchUnder23().clear(this)
+                }
             }
         }
     }
